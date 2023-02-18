@@ -1,0 +1,77 @@
+
+#include <iostream>
+#include <vector>
+
+// print result modulo some value
+#define ORIGINAL
+#ifdef ORIGINAL
+const unsigned long long Modulo = 1000000000000000000ULL; // high enough to keep the result unchanged
+#else
+const unsigned long long Modulo = 1000000007ULL;
+#endif
+
+int main()
+{
+  // Googol = 100, but Hackerrank wants more ...
+  const unsigned int numDigits = 100000;
+  std::vector<unsigned long long> solutions(numDigits + 1, 0);
+
+  // count how many numbers are increasing and/or decreasing
+  typedef unsigned long long DigitCounter[10]; // some older GCC complain about using this in a vector
+  std::vector<DigitCounter> increase(numDigits);
+  std::vector<DigitCounter> decrease(numDigits);
+
+  // all one-digit numbers are non-bouncy
+  unsigned long long sum = 9;
+  for (auto& x : increase[0])
+    x = 1;
+  for (auto& x : decrease[0])
+    x = 1;
+
+  // process digits, beginning from the right side
+  for (unsigned int i = 1; i < numDigits; i++)
+  {
+    // digits 0..9
+    for (unsigned int current = 0; current <= 9; current++)
+    {
+      // add count of all numbers where the next digit is equal or lower
+      decrease[i][current] = 0;
+      for (unsigned int smaller = 0; smaller <= current; smaller++)
+        decrease[i][current] = (decrease[i][current] + decrease[i - 1][smaller]) % Modulo;
+
+      // add count of all numbers where the next digit is equal or higher
+      increase[i][current] = 0;
+      for (unsigned int bigger = current; bigger <= 9; bigger++)
+        increase[i][current] = (increase[i][current] + increase[i - 1][bigger]) % Modulo;
+    }
+
+    // compute total sum of increasing and decreasing numbers
+    for (auto x : increase[i])
+      sum += x;
+    for (auto x : decrease[i])
+      sum += x;
+
+    // but numbers must not start with zero !
+    sum -= increase[i][0];
+
+    // numbers with identical digits were counted twice
+    // because they are both increasing and decreasing (e.g. 55555555)
+    sum -= 10;
+
+    // Hackerrank only
+    sum %= Modulo;
+    solutions[i] = sum;
+  }
+
+  // lookup results
+  unsigned int tests;
+  std::cin >> tests;
+  while (tests--)
+  {
+    unsigned int digits;
+    std::cin >> digits;
+    std::cout << solutions[digits - 1] << std::endl; // 0-based array but 1-based input
+  }
+
+  return 0;
+}
