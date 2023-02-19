@@ -1,0 +1,67 @@
+
+#include <iostream>
+#include <vector>
+
+#define ORIGINAL
+
+// memoized solutions
+const long long Unknown = -1;
+std::vector<long long> solutions;
+
+// print result modulo some number
+#ifndef ORIGINAL
+const unsigned long long Modulo = 1000000007;
+#endif
+
+// find result for row with a certain length
+unsigned long long count(unsigned long long space, unsigned int minBlockLength)
+{
+  // finished ?
+  if (space == 0)
+    return 1;
+
+  // already know the answer ?
+  if (solutions[space] != Unknown)
+    return solutions[space];
+
+  // one option is to leave the next cell black
+  auto result = count(space - 1, minBlockLength);
+  // insert red blocks at the current position with all possible spaces
+  for (auto block = minBlockLength; block <= space; block++)
+  {
+    // how much is left after inserting ?
+    auto next = space - block;
+    // must be followed by a black cell
+    if (next > 0)
+      next--;
+
+    // count all combinations
+    result += count(next, minBlockLength);
+  }
+
+  // Hackerrank only
+#ifndef ORIGINAL
+  result %= Modulo;
+#endif
+
+  // memoize result
+  solutions[space] = result;
+  return result;
+}
+
+int main()
+{
+  // minimum length of each red block
+  unsigned int       minBlockLength =  3;
+  // size of the whole row
+  unsigned long long totalLength    = 50;
+  std::cin >> totalLength >> minBlockLength;
+
+  // cached results
+  solutions.resize(totalLength + 1, Unknown);
+
+  // let's go !
+  std::cout << count(totalLength, minBlockLength) << std::endl;
+
+  return 0;
+}
