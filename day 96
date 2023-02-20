@@ -1,0 +1,60 @@
+#include <iostream>
+#include <vector>
+
+#define ORIGINAL
+
+// memoized solutions
+const long long Unknown = -1;
+std::vector<long long> solutions;
+
+// find result for row with a certain length
+unsigned long long count(unsigned long long space)
+{
+  // finished ?
+  if (space == 0)
+    return 1;
+
+  // already know the answer ?
+  if (solutions[space] != Unknown)
+    return solutions[space];
+
+  // insert red blocks at the current position with all possible spaces
+  unsigned long long result = 0;
+  for (unsigned long long block = 1; block <= 4 && block <= space; block++)
+  {
+    // how much is left after inserting ?
+    auto next = space - block;
+
+    // count all combinations
+    result += count(next);
+  }
+
+  // memoize result
+  solutions[space] = result;
+  return result;
+}
+
+int main()
+{
+  unsigned int tests;
+  std::cin >> tests;
+  while (tests--)
+  {
+    // what number should be exceeded ?
+    unsigned long long limit = 50;
+    std::cin >> limit;
+
+    // cached results
+    solutions.clear();
+    solutions.resize(limit+1, Unknown);
+
+    auto result = count(limit);
+#ifndef ORIGINAL
+    result %= 1000000007;                  // Hackerrank asks for "small" results
+#endif
+
+    std::cout << result << std::endl;
+  }
+
+  return 0;
+}
